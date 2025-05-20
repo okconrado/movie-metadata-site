@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Global Film Search</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 text-gray-800 p-6">
+
+  <div class="max-w-2xl mx-auto">
+    <h1 class="text-3xl font-bold mb-4 text-center">🎬 Global Film Search</h1>
+    <div class="flex mb-6">
+      <input id="searchInput" class="flex-1 p-2 border rounded-l" type="text" placeholder="Search for any film..." />
+      <button onclick="searchAll()" class="bg-blue-600 text-white px-4 py-2 rounded-r">Search</button>
+    </div>
+
+    <div id="results" class="space-y-6"></div>
+  </div>
+
+  <script>
+    const omdbKey = "92612f78"; // Replace with your OMDb key
+
+    async function searchAll() {
+      const query = document.getElementById("searchInput").value.trim();
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "Searching...";
+
+      const omdbUrl = `https://www.omdbapi.com/?t=${encodeURIComponent(query)}&apikey=${omdbKey}`;
+      const fakeMerchUrl = `https://fakestoreapi.com/products?search=${encodeURIComponent(query)}`; // Placeholder
+
+      try {
+        const [omdbRes, merchRes] = await Promise.all([
+          fetch(omdbUrl).then(r => r.json()),
+          fetch(fakeMerchUrl).then(r => r.json()) // Replace with real store API
+        ]);
+
+        let html = "";
+
+        if (omdbRes.Response === "True") {
+          html += `
+            <div class="bg-white p-4 shadow rounded">
+              <h2 class="text-xl font-bold mb-2">${omdbRes.Title} (${omdbRes.Year})</h2>
+              <p><strong>Director:</strong> ${omdbRes.Director}</p>
+              <p><strong>Genre:</strong> ${omdbRes.Genre}</p>
+              <p><strong>Plot:</strong> ${omdbRes.Plot}</p>
+              <img src="${omdbRes.Poster}" alt="Poster" class="mt-4 w-32">
+            </div>
+          `;
+        }
+
+        html += `<div class="bg-white p-4 shadow rounded"><h3 class="font-bold mb-2">🎁 Related Merch (mock)</h3>`;
+        merchRes.slice(0, 3).forEach(item => {
+          html += `
+            <div class="border-t pt-2">
+              <p><strong>${item.title}</strong></p>
+              <p>$${item.price}</p>
+              <img src="${item.image}" alt="Merch" class="w-20 my-2">
+            </div>
+          `;
+        });
+        html += `</div>`;
+
+        resultsDiv.innerHTML = html;
+
+      } catch (err) {
+        console.error(err);
+        resultsDiv.innerHTML = "<p class='text-red-500'>Something went wrong. Try again.</p>";
+      }
+    }
+  </script>
+</body>
+</html>
